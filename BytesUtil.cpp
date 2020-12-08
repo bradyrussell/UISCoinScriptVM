@@ -97,5 +97,12 @@ int64_t BytesUtil::BytesAsInt64(const std::vector<int8_t> &Bytes) {
     throw std::invalid_argument("BytesAsInt64 expected byte array of length 1, 4 or 8, found "+std::to_string(Bytes.size()));
 }
 
+bool BytesUtil::BytesToBoolean(const std::vector<int8_t> &Bytes) {
+    return !(Bytes.size() == 1 && Bytes.at(0) == 0); // todo less strict checking?
+}
+
+std::vector<int8_t> BytesUtil::BooleanToBytes(bool Boolean) {
+    return std::vector<int8_t>(1, Boolean);
+}
 
 #pragma clang diagnostic pop

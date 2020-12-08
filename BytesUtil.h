@@ -14,7 +14,9 @@ namespace BytesUtil {
     std::vector<int8_t> NumberToBytes(int32_t Number);
     std::vector<int8_t> NumberToBytes(int64_t Number);
     std::vector<int8_t> NumberToBytes(float Number);
+    std::vector<int8_t> BooleanToBytes(bool Boolean);
 
+    bool BytesToBoolean(const std::vector<int8_t>& Bytes);
     int8_t BytesToInt8(const std::vector<int8_t>& Bytes);
     int32_t BytesToInt32(const std::vector<int8_t>& Bytes);
     int64_t BytesToInt64(const std::vector<int8_t>& Bytes);

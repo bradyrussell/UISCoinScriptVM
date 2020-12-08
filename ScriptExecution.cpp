@@ -4,15 +4,12 @@
 #include "ScriptOperator.h"
 #include "ScriptExecution.h"
 #include "BytesUtil.h"
-//#include <utility>
 #include <iostream>
 #include <utility>
-#include <sstream>
-#include <iterator>
+#include <algorithm>
+#include <vector>
 
-//#define DEBUGPRINT
-
-// todo checks for script remaining and stack size  / len
+#define DEBUGPRINT
 
 bool ScriptExecution::Step() {
     if(StepCounter++ > StepLimit) {
@@ -111,7 +108,6 @@ bool ScriptExecution::Step() {
             CheckInsufficientStackSize(PickIndex+1);
 
             ScriptStack.push_back(ScriptStack.at(PickIndex));
-
             return true;
         }
         case (int8_t)OP_PUT: {
@@ -133,7 +129,6 @@ bool ScriptExecution::Step() {
             CheckInsufficientStackSize(PutIndex+1);
 
             ScriptStack.at(PutIndex) = PutBytes;
-
             return true;
         }
         case (int8_t)OP_NUMEQUAL: {
@@ -151,7 +146,7 @@ bool ScriptExecution::Step() {
     std::cout << A << " == "  << B << " = " << ((A == B)? "true":"false") << std::endl;
 #endif
 
-            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A == B)));
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(A == B));
             return true;
         }
         case (int8_t)OP_BYTESEQUAL: {
@@ -162,7 +157,7 @@ bool ScriptExecution::Step() {
             auto BBytes = ScriptStack.back();
             ScriptStack.pop_back();
 
-            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(ABytes == BBytes)));
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(ABytes == BBytes));
             return true;
         }
         case (int8_t)OP_SHA512EQUAL: {
@@ -176,7 +171,7 @@ bool ScriptExecution::Step() {
             auto BBytes = ScriptStack.back();
             ScriptStack.pop_back();
 
-            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(ABytes.size() == BBytes.size())));
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(ABytes.size() == BBytes.size()));
             return true;
         }
         case (int8_t)OP_LESSTHAN: {
@@ -190,7 +185,7 @@ bool ScriptExecution::Step() {
             auto A = BytesUtil::BytesAsInt64(ABytes);
             auto B = BytesUtil::BytesAsInt64(BBytes);
 
-            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A < B)));
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(A < B));
             return true;
         }
         case (int8_t)OP_LESSTHANEQUAL: {
@@ -204,7 +199,7 @@ bool ScriptExecution::Step() {
             auto A = BytesUtil::BytesAsInt64(ABytes);
             auto B = BytesUtil::BytesAsInt64(BBytes);
 
-            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A <= B)));
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(A <= B));
             return true;
         }
         case (int8_t)OP_GREATERTHAN: {
@@ -218,7 +213,7 @@ bool ScriptExecution::Step() {
             auto A = BytesUtil::BytesAsInt64(ABytes);
             auto B = BytesUtil::BytesAsInt64(BBytes);
 
-            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A > B)));
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(A > B));
             return true;
         }
         case (int8_t)OP_GREATERTHANEQUAL: {
@@ -232,7 +227,7 @@ bool ScriptExecution::Step() {
             auto A = BytesUtil::BytesAsInt64(ABytes);
             auto B = BytesUtil::BytesAsInt64(BBytes);
 
-            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A >= B)));
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(A >= B));
             return true;
         }
         case (int8_t)OP_NOTEQUAL: {
@@ -243,7 +238,7 @@ bool ScriptExecution::Step() {
             auto BBytes = ScriptStack.back();
             ScriptStack.pop_back();
 
-            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(ABytes != BBytes)));
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(ABytes != BBytes));
             return true;
         }
         case (int8_t)OP_NOTZERO: {
@@ -438,16 +433,65 @@ bool ScriptExecution::Step() {
             throw std::invalid_argument("Could not auto widen math expression: Len:"+std::to_string(MaxLen));
         }
         case (int8_t)OP_ADDBYTES: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            for(unsigned int i = 0; i < std::min(ABytes.size(),BBytes.size()); i++){
+                ABytes.at(i) += BBytes.at(i);
+            }
+
+            ScriptStack.push_back(ABytes);
+            return true;
         }
         case (int8_t)OP_SUBTRACTBYTES: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            for(unsigned int i = 0; i < std::min(ABytes.size(),BBytes.size()); i++){
+                ABytes.at(i) -= BBytes.at(i);
+            }
+
+            ScriptStack.push_back(ABytes);
+            return true;
         }
         case (int8_t)OP_MULTIPLYBYTES: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            for(unsigned int i = 0; i < std::min(ABytes.size(),BBytes.size()); i++){
+                ABytes.at(i) *= BBytes.at(i);
+            }
+
+            ScriptStack.push_back(ABytes);
+            return true;
         }
         case (int8_t)OP_DIVIDEBYTES: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            for(unsigned int i = 0; i < std::min(ABytes.size(),BBytes.size()); i++){
+                if(BBytes.at(i)) throw std::runtime_error("Cannot divide by zero.");
+                ABytes.at(i) /= BBytes.at(i);
+            }
+
+            ScriptStack.push_back(ABytes);
+            return true;
         }
         case (int8_t)OP_NEGATE: {
             CheckInsufficientStackSize(1);
@@ -470,7 +514,30 @@ bool ScriptExecution::Step() {
             throw std::invalid_argument("Could not determine type of math expression: Len:"+std::to_string(ABytes.size()));
         }
         case (int8_t)OP_MODULO: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
+
+            int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
+
+            if(MaxLen == 1){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A % B)));
+                return true;
+            } else if(MaxLen == 4){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(A % B)));
+                return true;
+            } else if(MaxLen == 8){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(A % B)));
+                return true;
+            }
+
+            throw std::invalid_argument("Could not auto widen math expression: Len:"+std::to_string(MaxLen));
         }
         case (int8_t)OP_CONVERT8TO32: {
             CheckInsufficientStackSize(1);
@@ -545,13 +612,33 @@ bool ScriptExecution::Step() {
             break;
         }
         case (int8_t)OP_APPEND: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ABytes.insert(std::end(ABytes), std::begin(BBytes), std::end(BBytes));
+            ScriptStack.push_back(ABytes);
+            return true;
         }
         case (int8_t)OP_LIMIT: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+
+            CheckNumberIsInRange(0,ScriptStack.back().size(), A);
+
+            ScriptStack.back().resize(A);
+            return true;
         }
         case (int8_t)OP_REVERSE: {
-            break;
+            CheckInsufficientStackSize(1);
+            std::reverse(std::begin(ScriptStack.back()), std::end(ScriptStack.back()));
+            return true;
         }
         case (int8_t)OP_SPLIT: {
             break;
@@ -560,19 +647,53 @@ bool ScriptExecution::Step() {
             break;
         }
         case (int8_t)OP_LEN: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ValueBytes = ScriptStack.back();
+            //ScriptStack.pop_back(); // todo dont think len pops
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)ValueBytes.size())); // todo uses int?
+            return true;
         }
         case (int8_t)OP_NOT: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(!BytesUtil::BytesToBoolean(ABytes))); // strict check for 1
+            return true;
         }
         case (int8_t)OP_OR: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(BytesUtil::BytesToBoolean(ABytes) || BytesUtil::BytesToBoolean(BBytes)));
+            return true;
         }
         case (int8_t)OP_AND: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(BytesUtil::BytesToBoolean(ABytes) && BytesUtil::BytesToBoolean(BBytes)));
+            return true;
         }
         case (int8_t)OP_XOR: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(BytesUtil::BytesToBoolean(ABytes) ^ BytesUtil::BytesToBoolean(BBytes))); // todo is this correct boolean xor?
+            return true;
         }
         case (int8_t)OP_INVERTFLOAT: {
             break;
@@ -595,74 +716,141 @@ bool ScriptExecution::Step() {
         case (int8_t)OP_NULL: {
             ScriptStack.emplace_back(0);
             return true;
-            break;
         }
         case (int8_t)OP_FALSE: {
             ScriptStack.emplace_back(1,0);
             return true;
-            break;
         }
         case (int8_t)OP_TRUE: {
             ScriptStack.emplace_back(1,1);
             return true;
-            break;
         }
         case (int8_t)OP_DEPTH: {
-            break;
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)ScriptStack.size())); // todo check if this returns int32 or int8 in java
+            return true;
         }
         case (int8_t)OP_DROP: {
-            break;
+            CheckInsufficientStackSize(1);
+            ScriptStack.pop_back();
+            return true;
         }
         case (int8_t)OP_DUP: {
-            break;
+            CheckInsufficientStackSize(1);
+            ScriptStack.push_back(ScriptStack.back());
+            return true;
         }
         case (int8_t)OP_SWAP: {
-            break;
+            CheckInsufficientStackSize(2);
+
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(ABytes);
+            ScriptStack.push_back(BBytes);
+            return true;
         }
         case (int8_t)OP_CLEAR: {
-            break;
+            ScriptStack.clear();
+            return true;
         }
         case (int8_t)OP_CLONE: {
-            break;
+            ScriptStack.insert(std::end(ScriptStack), std::begin(ScriptStack), std::end(ScriptStack));
+            return true;
         }
         case (int8_t)OP_FLIP: {
-            break;
+            std::reverse(std::begin(ScriptStack), std::end(ScriptStack));
+            return true;
         }
         case (int8_t)OP_SHIFTUP: {
-            break;
+            std::rotate(std::begin(ScriptStack), std::begin(ScriptStack) + 1, std::end(ScriptStack));
+            return true;
         }
         case (int8_t)OP_SHIFTDOWN: {
-            break;
+            std::rotate(std::begin(ScriptStack), std::begin(ScriptStack) - 1, std::end(ScriptStack));
+            return true;
         }
         case (int8_t)OP_SHIFTN: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            std::rotate(std::begin(ScriptStack), std::begin(ScriptStack) + A, std::end(ScriptStack)); // todo can this handle like -498573?
+            return true;
         }
         case (int8_t)OP_SHIFTELEMENTSRIGHT: {
-            break;
+            CheckInsufficientStackSize(1);
+            std::rotate(std::begin(ScriptStack.back()), std::begin(ScriptStack.back()) + 1, std::end(ScriptStack.back()));
+            return true;
         }
         case (int8_t)OP_SHIFTELEMENTSLEFT: {
-            break;
+            CheckInsufficientStackSize(1);
+            std::rotate(std::begin(ScriptStack.back()), std::begin(ScriptStack.back()) - 1, std::end(ScriptStack.back()));
+            return true;
         }
         case (int8_t)OP_DUP2: {
-            break;
+            CheckInsufficientStackSize(2);
+
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(BBytes);
+            ScriptStack.push_back(BBytes);
+            ScriptStack.push_back(ABytes);
+            ScriptStack.push_back(ABytes);
+            return true;
         }
         case (int8_t)OP_DUPN: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+
+            CheckNumberIsInRange(0,ScriptStack.size()-1, A);
+            CheckInsufficientStackSize(A);
+
+            ScriptStack.insert(std::end(ScriptStack), std::end(ScriptStack)-A, std::end(ScriptStack)); // todo see if this works
+            return true;
         }
         case (int8_t)OP_DROPN: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+
+            CheckNumberIsInRange(0,ScriptStack.size()-1, A);
+            CheckInsufficientStackSize(A);
+
+            ScriptStack.resize(ScriptStack.size() - A); // todo check if this works
+            return true;
         }
         case (int8_t)OP_SHIFTNEXCEPT: {
             break;
         }
         case (int8_t)OP_VERIFY: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            return BytesUtil::BytesToBoolean(ABytes); // strict check for 1
         }
         case (int8_t)OP_RETURN: {
-            break;
+            return false;
         }
         case (int8_t)OP_RETURNIF: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            return !BytesUtil::BytesToBoolean(ABytes); // strict check for 1
         }
         case (int8_t)OP_SHA512: {
             break;
