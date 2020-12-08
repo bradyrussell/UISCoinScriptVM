@@ -14,12 +14,14 @@ void BytesUtil::PrintBytesHex(std::vector<int8_t> Bytes) {
     for(int8_t i:Bytes){
         printf("%x ", i & 0xff);
     }
+    printf("\n");
 }
 
 void BytesUtil::PrintBytes(std::vector<int8_t> Bytes) {
     for(int8_t i:Bytes){
         printf("%d ", i);
     }
+    printf("\n");
 }
 
 std::vector<int8_t> BytesUtil::NumberToBytes(int8_t Number) {

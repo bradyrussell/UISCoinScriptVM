@@ -4,6 +4,7 @@
 #include "ScriptOperator.h"
 #include "ScriptExecution.h"
 #include "BytesUtil.h"
+#include "crypto/sha512.h"
 #include <iostream>
 #include <utility>
 #include <algorithm>
@@ -853,7 +854,12 @@ bool ScriptExecution::Step() {
             return !BytesUtil::BytesToBoolean(ABytes); // strict check for 1
         }
         case (int8_t)OP_SHA512: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(sha512(ABytes));
+            return true;
         }
         case (int8_t)OP_ZIP: {
             break;

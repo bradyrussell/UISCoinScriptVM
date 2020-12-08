@@ -5,17 +5,30 @@
 #include "ScriptExecution.h"
 #include "BytesUtil.h"
 #include "crypto/sha512.h"
+#include "zlib/zlib_wrapper.h"
+#include <zlib.h>
+
+
 
 int main() {
+    try {
+        int8_t Script[] = {-127, 1, 4, 0, 0, 0, 1, 1, 1, 5, 42, 34, 1, 1, 0, 8, 1, 4, 0, 0, 0, 2, 1, 1, 5, 42, 34, 1, 1,
+                           0, 8, 1, 4, 0, 0, 0, 3, 1, 1, 5, 42, 34, 1, 1, 0, 8, 1, 4, 0, 0, 0, 4, 1, 1, 5, 42, 34, 1, 1};
 
-    const std::vector<int8_t> &bytes = sha512(BytesUtil::NumberToBytes((int8_t) 1));
+        std::vector<int8_t> scriptVector;
+        scriptVector.insert(scriptVector.begin(), std::begin(Script), std::end(Script));
 
-    BytesUtil::PrintBytes(bytes);
+        const std::vector<int8_t> &compressed = zlib::zip(scriptVector);
+        const std::vector<int8_t> &uncompressed = zlib::unzip(compressed);
 
-    std::cout << std::endl << bytes.size() << std::endl;
+        BytesUtil::PrintBytes(scriptVector);
+        BytesUtil::PrintBytes(compressed);
+        BytesUtil::PrintBytes(uncompressed);
 
+    } catch (std::exception& e){
+        std::cout << e.what();
+    }
     return 0;
-
 
     auto beginTime = std::chrono::steady_clock::now();
     try {
