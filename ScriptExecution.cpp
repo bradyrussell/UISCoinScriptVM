@@ -454,22 +454,64 @@ bool ScriptExecution::Step() {
             //return false;
         }
         case (int8_t)OP_CONVERT8TO32: {
-            //return false;
+            CheckInsufficientStackSize(1);
+            auto ValueBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            CheckIncorrectNumberBytes(ValueBytes,1);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)BytesUtil::BytesToInt8(ValueBytes)));
+            return true;
         }
         case (int8_t)OP_CONVERT32TO8: {
-            //return false;
+            CheckInsufficientStackSize(1);
+            auto ValueBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            CheckIncorrectNumberBytes(ValueBytes,4);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)BytesUtil::BytesToInt32(ValueBytes)));
+            return true;
         }
         case (int8_t)OP_CONVERT64TO32: {
-            //return false;
+            CheckInsufficientStackSize(1);
+            auto ValueBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            CheckIncorrectNumberBytes(ValueBytes,8);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)BytesUtil::BytesToInt64(ValueBytes)));
+            return true;
         }
         case (int8_t)OP_CONVERT32TO64: {
-            //return false;
+            CheckInsufficientStackSize(1);
+            auto ValueBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            CheckIncorrectNumberBytes(ValueBytes,4);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)BytesUtil::BytesToInt32(ValueBytes)));
+            return true;
         }
         case (int8_t)OP_CONVERTFLOATTO32: {
-            //return false;
+            CheckInsufficientStackSize(1);
+            auto ValueBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            CheckIncorrectNumberBytes(ValueBytes,4);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)BytesUtil::BytesToFloat(ValueBytes)));
+            return true;
         }
         case (int8_t)OP_CONVERT32TOFLOAT: {
-            //return false;
+            CheckInsufficientStackSize(1);
+            auto ValueBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            CheckIncorrectNumberBytes(ValueBytes,4);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((float)BytesUtil::BytesToInt32(ValueBytes)));
+            return true;
         }
         case (int8_t)OP_BITNOT: {
             //return false;
