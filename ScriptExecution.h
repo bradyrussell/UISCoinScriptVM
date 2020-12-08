@@ -26,8 +26,15 @@ public:
 
     bool Step();
 
-    bool Execute(bool bDebugPrint = false);
+    bool Execute();
+
+    void CheckScriptEndsBefore(int32_t MinimumRemainingBytes);
+    void CheckInsufficientStackSize(int32_t MinimumSize);
+    static void CheckInsufficientNumberBytes(const std::vector<int8_t>& Value, int32_t MinimumSizeBytes);
+    static void CheckIncorrectNumberBytes(const std::vector<int8_t>& Value, int32_t ExpectedSizeBytes);
+    static void CheckNumberIsInRange(int64_t MinInclusive, int64_t MaxInclusive, int64_t Value);
 };
+
 
 
 #endif //UISCOINSCRIPTVM_SCRIPTEXECUTION_H

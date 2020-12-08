@@ -3,8 +3,6 @@
 #include "ScriptOperator.h"
 #include "ScriptExecution.h"
 #include "BytesUtil.h"
-
-
 //OperatorToName[OP_CALL]
 
 int main() {
@@ -37,7 +35,7 @@ int main() {
 
         ScriptExecution scriptExecution(scriptVector);
 
-        bool success = scriptExecution.Execute(true);
+        bool success = scriptExecution.Execute();
 
         std::cout << "Script execution returned: " << (success ? "true" : "false") << std::endl;
         return 0;

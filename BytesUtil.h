@@ -20,6 +20,9 @@ namespace BytesUtil {
     int64_t BytesToInt64(const std::vector<int8_t>& Bytes);
     float BytesToFloat(const std::vector<int8_t>& Bytes);
 
+    // for comparisons, will convert int8 and int32 to int64
+    int64_t BytesAsInt64(const std::vector<int8_t>& Bytes);
+
     void PrintBytes(std::vector<int8_t> Bytes);
     void PrintBytesHex(std::vector<int8_t> Bytes);
 

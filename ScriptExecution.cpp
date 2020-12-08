@@ -10,6 +10,8 @@
 #include <sstream>
 #include <iterator>
 
+#define DEBUGPRINT
+
 // todo checks for script remaining and stack size  / len
 
 bool ScriptExecution::Step() {
@@ -20,15 +22,19 @@ bool ScriptExecution::Step() {
         return false;
 
     int8_t CurrentOp = ScriptBytes.at(InstructionCounter++);
-
+#ifdef DEBUGPRINT
     std::cout << "Current Op: " << OperatorToName[CurrentOp] << std::endl;
-
+#endif
     switch (CurrentOp){
         case (int8_t)OP_NOP: {
             return true;
         }
         case (int8_t)OP_PUSH: {
+            CheckScriptEndsBefore(1);
             int8_t NumberOfBytes = ScriptBytes.at(InstructionCounter++);
+
+            CheckNumberIsInRange(0,INT8_MAX, NumberOfBytes);
+            CheckScriptEndsBefore(NumberOfBytes);
 
             std::vector<int8_t> PushData;
 
@@ -45,10 +51,12 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_FLAG: {
+            CheckScriptEndsBefore(1);
             int8_t Flag = ScriptBytes.at(InstructionCounter++);
             return true;
         }
         case (int8_t)OP_BIGPUSH: {
+            CheckScriptEndsBefore(4);
             std::vector<int8_t> NumberOfBytesBytes;
             NumberOfBytesBytes.reserve(4);
             for(int i = 0; i < 4; i++){
@@ -56,6 +64,9 @@ bool ScriptExecution::Step() {
             }
 
             int32_t NumberOfBytes = BytesUtil::BytesToInt32(NumberOfBytesBytes);
+
+            CheckNumberIsInRange(0,INT32_MAX, NumberOfBytes);
+            CheckScriptEndsBefore(NumberOfBytes);
 
             std::vector<int8_t> PushData;
 
@@ -83,10 +94,11 @@ bool ScriptExecution::Step() {
             return false;
         }
         case (int8_t)OP_PICK: {
+            CheckInsufficientStackSize(1);
             auto PickIndexBytes = ScriptStack.back();
             ScriptStack.pop_back();
 
-            int32_t PickIndex = -1;
+            int32_t PickIndex;
 
             if(PickIndexBytes.size() == 1) {
                 PickIndex = BytesUtil::BytesToInt8(PickIndexBytes);
@@ -94,15 +106,18 @@ bool ScriptExecution::Step() {
                 PickIndex = BytesUtil::BytesToInt32(PickIndexBytes);
             }
 
-            ScriptStack.push_back(ScriptStack.at(PickIndex)); // todo check out of bounds
+            CheckInsufficientStackSize(PickIndex+1);
+
+            ScriptStack.push_back(ScriptStack.at(PickIndex));
 
             return true;
         }
         case (int8_t)OP_PUT: {
+            CheckInsufficientStackSize(2);
             auto PutIndexBytes = ScriptStack.back();
             ScriptStack.pop_back();
 
-            int32_t PutIndex = -1;
+            int32_t PutIndex;
 
             if(PutIndexBytes.size() == 1) {
                 PutIndex = BytesUtil::BytesToInt8(PutIndexBytes);
@@ -113,66 +128,308 @@ bool ScriptExecution::Step() {
             auto PutBytes = ScriptStack.back();
             ScriptStack.pop_back();
 
+            CheckInsufficientStackSize(PutIndex+1);
+
             ScriptStack.at(PutIndex) = PutBytes;
 
             return true;
         }
         case (int8_t)OP_NUMEQUAL: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(ABytes);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A == B)));
+            return true;
         }
         case (int8_t)OP_BYTESEQUAL: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(ABytes == BBytes)));
+            return true;
         }
         case (int8_t)OP_SHA512EQUAL: {
             //return false;
         }
         case (int8_t)OP_LENEQUAL: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(ABytes.size() == BBytes.size())));
+            return true;
         }
         case (int8_t)OP_LESSTHAN: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(ABytes);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A < B)));
+            return true;
         }
         case (int8_t)OP_LESSTHANEQUAL: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(ABytes);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A <= B)));
+            return true;
         }
         case (int8_t)OP_GREATERTHAN: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(ABytes);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A > B)));
+            return true;
         }
         case (int8_t)OP_GREATERTHANEQUAL: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(ABytes);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A >= B)));
+            return true;
         }
         case (int8_t)OP_NOTEQUAL: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(ABytes != BBytes)));
+            return true;
         }
         case (int8_t)OP_NOTZERO: {
-            //return false;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+
+            ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A != 0)));
+            return true;
         }
         case (int8_t)OP_GET: {
-            //return false;
+            // pop len
+            //pop begin
+            // pop element
+            CheckInsufficientStackSize(3);
+            auto LenBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+            auto Len = BytesUtil::BytesAsInt64(LenBytes);
+            
+            auto BeginIndexBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+            auto BeginIndex = BytesUtil::BytesAsInt64(BeginIndexBytes);
+
+            auto StackElementIndexBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+            auto StackElementIndex = BytesUtil::BytesAsInt64(StackElementIndexBytes);
+
+            CheckInsufficientStackSize(StackElementIndex+1);
+
+            std::vector<int8_t> &element = ScriptStack.at(StackElementIndex);
+
+            CheckInsufficientNumberBytes(element,BeginIndex+Len);
+
+            std::vector<int8_t> result(Len);
+            std::copy(element.begin()+BeginIndex, element.begin()+BeginIndex+Len, result.begin());
+
+            ScriptStack.push_back(result);
+            return true;
         }
         case (int8_t)OP_SET: {
-            //return false;
+            // pop len
+            //pop begin
+            // pop element
+            //pop value
+            CheckInsufficientStackSize(3);
+            auto LenBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+            auto Len = BytesUtil::BytesAsInt64(LenBytes);
+
+            auto BeginIndexBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+            auto BeginIndex = BytesUtil::BytesAsInt64(BeginIndexBytes);
+
+            auto StackElementIndexBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+            auto StackElementIndex = BytesUtil::BytesAsInt64(StackElementIndexBytes);
+
+            auto Value = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            CheckInsufficientStackSize(StackElementIndex+1);
+
+            CheckInsufficientNumberBytes(Value,Len);
+            CheckInsufficientNumberBytes(ScriptStack.at(StackElementIndex),BeginIndex+Len);
+
+            std::copy(Value.begin(), Value.begin()+Len,ScriptStack.at(StackElementIndex).begin()+BeginIndex);
+
+            return true;
         }
         case (int8_t)OP_COPY: {
             //return false;
         }
         case (int8_t)OP_ALLOC: {
-            //return false;
+            CheckInsufficientStackSize(1);
+            auto SizeBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto Size = BytesUtil::BytesAsInt64(SizeBytes);
+
+            ScriptStack.emplace_back(Size, 0);
+            return true;
         }
         case (int8_t)OP_THIS: {
             //return false;
         }
         case (int8_t)OP_ADD: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(ABytes);
+
+            int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
+
+            if(MaxLen == 1){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A + B)));
+                return true;
+            } else if(MaxLen == 4){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(A + B)));
+                return true;
+            } else if(MaxLen == 8){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(A + B)));
+                return true;
+            }
+
+            throw std::invalid_argument("Could not auto widen math expression: Len:"+std::to_string(MaxLen));
         }
         case (int8_t)OP_SUBTRACT: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(ABytes);
+
+            int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
+
+            if(MaxLen == 1){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A - B)));
+                return true;
+            } else if(MaxLen == 4){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(A - B)));
+                return true;
+            } else if(MaxLen == 8){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(A - B)));
+                return true;
+            }
+
+            throw std::invalid_argument("Could not auto widen math expression: Len:"+std::to_string(MaxLen));
         }
         case (int8_t)OP_MULTIPLY: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(ABytes);
+
+            int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
+
+            if(MaxLen == 1){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A * B)));
+                return true;
+            } else if(MaxLen == 4){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(A * B)));
+                return true;
+            } else if(MaxLen == 8){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(A * B)));
+                return true;
+            }
+
+            throw std::invalid_argument("Could not auto widen math expression: Len:"+std::to_string(MaxLen));
         }
         case (int8_t)OP_DIVIDE: {
-            //return false;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(ABytes);
+
+            int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
+
+            if(B == 0) throw std::invalid_argument("Divide by zero not allowed.");
+
+            if(MaxLen == 1){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A / B)));
+                return true;
+            } else if(MaxLen == 4){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(A / B)));
+                return true;
+            } else if(MaxLen == 8){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(A / B)));
+                return true;
+            }
+
+            throw std::invalid_argument("Could not auto widen math expression: Len:"+std::to_string(MaxLen));
         }
         case (int8_t)OP_ADDBYTES: {
             //return false;
@@ -374,14 +631,14 @@ bool ScriptExecution::Step() {
     }
 }
 
-bool ScriptExecution::Execute(bool bDebugPrint) {
+bool ScriptExecution::Execute() {
     while(Step()) {
-        if(bDebugPrint) {
-            for(const std::vector<int8_t>& vec:ScriptStack){
-                BytesUtil::PrintBytes(vec);
-                std::cout << std::endl;
-            }
+#ifdef DEBUGPRINT
+        for(const std::vector<int8_t>& vec:ScriptStack){
+            BytesUtil::PrintBytes(vec);
+            std::cout << std::endl;
         }
+#endif
     }
     return !bScriptFailed;
 }
@@ -396,6 +653,27 @@ ScriptExecution::ScriptExecution( std::vector<int8_t> scriptBytes,
                                  std::vector<std::vector<int8_t>> scriptStack,int32_t stepCounter) : StepCounter(stepCounter),
                                                                                         ScriptBytes(std::move(scriptBytes)),
                                                                                         ScriptStack(std::move(scriptStack)) {}
+
+void ScriptExecution::CheckScriptEndsBefore(int32_t MinimumRemainingBytes) {
+    if(ScriptBytes.size() < InstructionCounter + MinimumRemainingBytes) throw std::logic_error("Expected at least "+std::to_string(MinimumRemainingBytes)+" bytes remaining in the script but there were only "+std::to_string(ScriptBytes.size()-InstructionCounter)+".");
+}
+
+void ScriptExecution::CheckInsufficientStackSize(int32_t MinimumSize) {
+    if(ScriptStack.size() < MinimumSize) throw std::runtime_error("Expected at least "+std::to_string(MinimumSize)+" elements on the stack but there were only "+std::to_string(ScriptStack.size())+".");
+}
+
+
+void ScriptExecution::CheckNumberIsInRange(int64_t MinInclusive, int64_t MaxInclusive, int64_t Value) {
+    if(Value < MinInclusive || Value > MaxInclusive) throw std::runtime_error("Expected value to be "+std::string(Value < MinInclusive ? "greater than "+std::to_string(MinInclusive):"less than"+std::to_string(MaxInclusive))+" but it was "+std::to_string(Value));
+}
+
+void ScriptExecution::CheckInsufficientNumberBytes(const std::vector<int8_t>& Value, int32_t MinimumSizeBytes) {
+    if(Value.size() < MinimumSizeBytes) throw std::runtime_error("Expected value to be at least "+std::to_string(MinimumSizeBytes)+" bytes but it was "+std::to_string(Value.size()));
+}
+
+void ScriptExecution::CheckIncorrectNumberBytes(const std::vector<int8_t>& Value, int32_t ExpectedSizeBytes) {
+    if(Value.size() != ExpectedSizeBytes) throw std::runtime_error("Expected value to be "+std::to_string(ExpectedSizeBytes)+" bytes but it was "+std::to_string(Value.size()));
+}
 
 
 
