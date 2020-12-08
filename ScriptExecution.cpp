@@ -23,7 +23,7 @@ bool ScriptExecution::Step() {
 
     int8_t CurrentOp = ScriptBytes.at(InstructionCounter++);
 #ifdef DEBUGPRINT
-    std::cout << "Current Op: " << OperatorToName[CurrentOp] << std::endl;
+    std::cout << "Current Op: " << OperatorToName[(uint8_t)CurrentOp] << std::endl;
 #endif
     switch (CurrentOp){
         case (int8_t)OP_NOP: {
@@ -164,7 +164,7 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_SHA512EQUAL: {
-            //return false;
+            break;
         }
         case (int8_t)OP_LENEQUAL: {
             CheckInsufficientStackSize(2);
@@ -314,7 +314,7 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_COPY: {
-            //return false;
+            break;
         }
         case (int8_t)OP_ALLOC: {
             CheckInsufficientStackSize(1);
@@ -327,7 +327,7 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_THIS: {
-            //return false;
+            break;
         }
         case (int8_t)OP_ADD: {
             CheckInsufficientStackSize(2);
@@ -436,22 +436,39 @@ bool ScriptExecution::Step() {
             throw std::invalid_argument("Could not auto widen math expression: Len:"+std::to_string(MaxLen));
         }
         case (int8_t)OP_ADDBYTES: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SUBTRACTBYTES: {
-            //return false;
+            break;
         }
         case (int8_t)OP_MULTIPLYBYTES: {
-            //return false;
+            break;
         }
         case (int8_t)OP_DIVIDEBYTES: {
-            //return false;
+            break;
         }
         case (int8_t)OP_NEGATE: {
-            //return false;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+
+            if(ABytes.size() == 1){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(-A)));
+                return true;
+            } else if(ABytes.size() == 4){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(-A)));
+                return true;
+            } else if(ABytes.size() == 8){
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(-A)));
+                return true;
+            }
+
+            throw std::invalid_argument("Could not determine type of math expression: Len:"+std::to_string(ABytes.size()));
         }
         case (int8_t)OP_MODULO: {
-            //return false;
+            break;
         }
         case (int8_t)OP_CONVERT8TO32: {
             CheckInsufficientStackSize(1);
@@ -514,167 +531,174 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_BITNOT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_BITOR: {
-            //return false;
+            break;
         }
         case (int8_t)OP_BITAND: {
-            //return false;
+            break;
         }
         case (int8_t)OP_BITXOR: {
-            //return false;
+            break;
         }
         case (int8_t)OP_APPEND: {
-            //return false;
+            break;
         }
         case (int8_t)OP_LIMIT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_REVERSE: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SPLIT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_COMBINE: {
-            //return false;
+            break;
         }
         case (int8_t)OP_LEN: {
-            //return false;
+            break;
         }
         case (int8_t)OP_NOT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_OR: {
-            //return false;
+            break;
         }
         case (int8_t)OP_AND: {
-            //return false;
+            break;
         }
         case (int8_t)OP_XOR: {
-            //return false;
+            break;
         }
         case (int8_t)OP_INVERTFLOAT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_NEGATEFLOAT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_ADDFLOAT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SUBTRACTFLOAT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_MULTIPLYFLOAT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_DIVIDEFLOAT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_NULL: {
-            //return false;
+            ScriptStack.emplace_back(0);
+            return true;
+            break;
         }
         case (int8_t)OP_FALSE: {
-            //return false;
+            ScriptStack.emplace_back(1,0);
+            return true;
+            break;
         }
         case (int8_t)OP_TRUE: {
-            //return false;
+            ScriptStack.emplace_back(1,1);
+            return true;
+            break;
         }
         case (int8_t)OP_DEPTH: {
-            //return false;
+            break;
         }
         case (int8_t)OP_DROP: {
-            //return false;
+            break;
         }
         case (int8_t)OP_DUP: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SWAP: {
-            //return false;
+            break;
         }
         case (int8_t)OP_CLEAR: {
-            //return false;
+            break;
         }
         case (int8_t)OP_CLONE: {
-            //return false;
+            break;
         }
         case (int8_t)OP_FLIP: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SHIFTUP: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SHIFTDOWN: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SHIFTN: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SHIFTELEMENTSRIGHT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SHIFTELEMENTSLEFT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_DUP2: {
-            //return false;
+            break;
         }
         case (int8_t)OP_DUPN: {
-            //return false;
+            break;
         }
         case (int8_t)OP_DROPN: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SHIFTNEXCEPT: {
-            //return false;
+            break;
         }
         case (int8_t)OP_VERIFY: {
-            //return false;
+            break;
         }
         case (int8_t)OP_RETURN: {
-            //return false;
+            break;
         }
         case (int8_t)OP_RETURNIF: {
-            //return false;
+            break;
         }
         case (int8_t)OP_SHA512: {
-            //return false;
+            break;
         }
         case (int8_t)OP_ZIP: {
-            //return false;
+            break;
         }
         case (int8_t)OP_UNZIP: {
-            //return false;
+            break;
         }
         case (int8_t)OP_ENCRYPTAES: {
-            //return false;
+            break;
         }
         case (int8_t)OP_DECRYPTAES: {
-            //return false;
+            break;
         }
         case (int8_t)OP_VERIFYSIG: {
-            //return false;
+            break;
         }
         case (int8_t)OP_CODESEPARATOR: {
-            //return false;
+            break;
         }
         case (int8_t)OP_CALL: {
-            //return false;
+            break;
         }
         case (int8_t)OP_JUMP: {
-            //return false;
+            break;
         }
         case (int8_t)OP_JUMPIF: {
-            //return false;
+            break;
         }
         default:{
-            std::cout << "Unhandled OP: " << OperatorToName[CurrentOp] << std::endl;
-            bScriptFailed = true;
-            return false;
+            break;
         }
     }
+    std::cout << "Unhandled OP: " << OperatorToName[(uint8_t)CurrentOp] << std::endl;
+    bScriptFailed = true;
+    return false;
 }
 
 bool ScriptExecution::Execute() {
