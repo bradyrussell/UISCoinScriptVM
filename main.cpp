@@ -21,7 +21,6 @@ int main() {
 
         auto endTime = std::chrono::steady_clock::now();
 
-        std::chrono::milliseconds elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - beginTime);
         std::chrono::nanoseconds elapsedNs = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - beginTime);
 
         std::cout << "Script execution returned: " << (success ? "true" : "false") << " in "  << elapsedNs.count()/1000000. << " ms." << std::endl;
