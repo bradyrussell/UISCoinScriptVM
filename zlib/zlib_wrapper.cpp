@@ -2,10 +2,8 @@
 // Created by Admin on 12/8/2020.
 //
 
-#include <zconf.h>
 #include <zlib.h>
 #include <stdexcept>
-#include <iostream>
 #include "zlib_wrapper.h"
 
 std::vector<int8_t> zlib::zip(const std::vector<int8_t> &input) {
