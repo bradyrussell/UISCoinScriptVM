@@ -9,26 +9,7 @@ int main() {
     try {
 
 
-        int8_t Script[] = {1,
-                           4,
-                           0,
-                           0,
-                           0,
-                           1,
-                           1,
-                           4,
-                           0,
-                           0,
-                           0,
-                           2,
-                           1,
-                           1,
-                           0,
-                           7,
-                           1,
-                           1,
-                           1,
-                           8};
+        int8_t Script[] = {1, 4, 0, 0, 0, 1, 1, 4, 0, 0, 0, 2, 32, 1, 4, 0, 0, 0, 3, 16};
 
         std::vector<int8_t > scriptVector;
         scriptVector.insert(scriptVector.begin(), std::begin(Script), std::end(Script));

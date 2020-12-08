@@ -143,7 +143,11 @@ bool ScriptExecution::Step() {
             ScriptStack.pop_back();
 
             auto A = BytesUtil::BytesAsInt64(ABytes);
-            auto B = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
+
+#ifdef DEBUGPRINT
+    std::cout << A << " == "  << B << " = " << ((A == B)? "true":"false") << std::endl;
+#endif
 
             ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A == B)));
             return true;
@@ -182,7 +186,7 @@ bool ScriptExecution::Step() {
             ScriptStack.pop_back();
 
             auto A = BytesUtil::BytesAsInt64(ABytes);
-            auto B = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
 
             ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A < B)));
             return true;
@@ -196,7 +200,7 @@ bool ScriptExecution::Step() {
             ScriptStack.pop_back();
 
             auto A = BytesUtil::BytesAsInt64(ABytes);
-            auto B = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
 
             ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A <= B)));
             return true;
@@ -210,7 +214,7 @@ bool ScriptExecution::Step() {
             ScriptStack.pop_back();
 
             auto A = BytesUtil::BytesAsInt64(ABytes);
-            auto B = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
 
             ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A > B)));
             return true;
@@ -224,7 +228,7 @@ bool ScriptExecution::Step() {
             ScriptStack.pop_back();
 
             auto A = BytesUtil::BytesAsInt64(ABytes);
-            auto B = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
 
             ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A >= B)));
             return true;
@@ -334,7 +338,7 @@ bool ScriptExecution::Step() {
             ScriptStack.pop_back();
 
             auto A = BytesUtil::BytesAsInt64(ABytes);
-            auto B = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
 
             int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
 
@@ -360,7 +364,7 @@ bool ScriptExecution::Step() {
             ScriptStack.pop_back();
 
             auto A = BytesUtil::BytesAsInt64(ABytes);
-            auto B = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
 
             int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
 
@@ -386,7 +390,7 @@ bool ScriptExecution::Step() {
             ScriptStack.pop_back();
 
             auto A = BytesUtil::BytesAsInt64(ABytes);
-            auto B = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
 
             int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
 
@@ -412,7 +416,7 @@ bool ScriptExecution::Step() {
             ScriptStack.pop_back();
 
             auto A = BytesUtil::BytesAsInt64(ABytes);
-            auto B = BytesUtil::BytesAsInt64(ABytes);
+            auto B = BytesUtil::BytesAsInt64(BBytes);
 
             int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
 
