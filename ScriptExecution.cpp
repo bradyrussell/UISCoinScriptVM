@@ -10,13 +10,15 @@
 #include <sstream>
 #include <iterator>
 
-#define DEBUGPRINT
+//#define DEBUGPRINT
 
 // todo checks for script remaining and stack size  / len
 
 bool ScriptExecution::Step() {
-    if(StepCounter++ > StepLimit)
-        return false;
+    if(StepCounter++ > StepLimit) {
+        bScriptFailed = true;
+       throw std::logic_error("The script has exceeded the execution limit.");
+    }
 
     if(InstructionCounter >= ScriptBytes.size())
         return false;

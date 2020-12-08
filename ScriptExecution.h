@@ -12,7 +12,7 @@
 class ScriptExecution {
 public:
     int32_t StepCounter = 0;
-    int32_t StepLimit = 1000;
+    int32_t StepLimit = 10000;
 
     int32_t InstructionCounter = 0;
     std::vector<int8_t> ScriptBytes;
