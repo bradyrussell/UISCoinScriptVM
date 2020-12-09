@@ -24,7 +24,7 @@ bool ScriptExecution::Step() {
 
     int8_t CurrentOp = ScriptBytes.at(InstructionCounter++);
 #ifdef DEBUGPRINT
-    std::cout << "Current Op: " << OperatorToName[(uint8_t)CurrentOp] << " at Instruction " << std::to_string(InstructionCounter) << std::endl;
+    std::cout << "Current Op: " << OperatorToName[(uint8_t)CurrentOp] << " at Instruction " << std::to_string(InstructionCounter-1) << std::endl;
 #endif
     switch (CurrentOp){
         case (int8_t)OP_NOP: {
@@ -643,6 +643,14 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_SPLIT: {
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            for(auto byte:ABytes){
+                ScriptStack.emplace_back(1,byte);
+            }
+
             break;
         }
         case (int8_t)OP_COMBINE: {
@@ -774,7 +782,7 @@ bool ScriptExecution::Step() {
             std::rotate(std::begin(ScriptStack), std::begin(ScriptStack) - 1, std::end(ScriptStack));
             return true;
         }
-        case (int8_t)OP_SHIFTN: {
+        case (int8_t)OP_SHIFTN: { // todo crashes // todo middle param is : element within the range [first,last) that is moved to the first position in the range. NOT amount of positions to shift
             CheckInsufficientStackSize(1);
             auto ABytes = ScriptStack.back();
             ScriptStack.pop_back();

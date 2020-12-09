@@ -13,7 +13,7 @@
 int main() {
     auto beginTime = std::chrono::steady_clock::now();
     try {
-        int8_t Script[] = {-127, -127, -127, -127, -127, -127, 1, 1, 10, 42, 1, 1, 0, 8, 1, 1, 5, 42, 1, 1, 1, 8, 1, 9, 1, 1, 5, 7, 1, 1, 4, 7, 33, 1, 1, 3, 8, 1, 1, 0, 7, 1, 1, 4, 8, 1, 1, 1, 7, 1, 1, 5, 8, -112, 1, 1, 3, 7, -48, -96, 1, 1, 2, 8};
+        int8_t Script[] = {1, 1, 97, 1, 1, 98, 1, 1, 99, 1, 1, 21, -103};
         std::vector<int8_t > scriptVector;
         scriptVector.insert(scriptVector.begin(), std::begin(Script), std::end(Script));
 
