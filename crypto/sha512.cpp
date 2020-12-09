@@ -157,7 +157,7 @@ std::vector<int8_t> sha512(const std::vector<int8_t> &input) {
     memset(digest, 0, SHA512::DIGEST_SIZE);
     SHA512 ctx = SHA512();
     ctx.init();
-    ctx.update((unsigned char *) &input.at(0), input.size());
+    ctx.update((unsigned char *) input.data(), input.size());
     ctx.final(digest);
 
     return std::vector<int8_t>(std::begin(digest), std::end(digest));

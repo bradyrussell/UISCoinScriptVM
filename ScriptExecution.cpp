@@ -775,11 +775,11 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_SHIFTUP: {
-            std::rotate(std::begin(ScriptStack), std::begin(ScriptStack) + 1, std::end(ScriptStack));
+            std::rotate(std::begin(ScriptStack), std::begin(ScriptStack) + ScriptStack.size() - 1, std::end(ScriptStack));
             return true;
         }
         case (int8_t)OP_SHIFTDOWN: {
-            std::rotate(std::begin(ScriptStack), std::begin(ScriptStack) - 1, std::end(ScriptStack));
+            std::rotate(std::begin(ScriptStack), std::begin(ScriptStack) + 1, std::end(ScriptStack));
             return true;
         }
         case (int8_t)OP_SHIFTN: { // todo crashes // todo middle param is : element within the range [first,last) that is moved to the first position in the range. NOT amount of positions to shift

@@ -10,7 +10,7 @@ std::vector<int8_t> zlib::zip(const std::vector<int8_t> &input) {
     unsigned char CompressedBytes[compressBound(input.size())];
     uLong CompressedBufferSize = sizeof(CompressedBytes);
 
-    int Error = compress(CompressedBytes, &CompressedBufferSize, (const Bytef*)(&input.at(0)), input.size());
+    int Error = compress(CompressedBytes, &CompressedBufferSize, (const Bytef*)(input.data()), input.size());
 
     if(Error != Z_OK) throw std::runtime_error("Zlib compress failed! Error: " + std::to_string(Error));
 
@@ -21,7 +21,7 @@ std::vector<int8_t> zlib::unzip(const std::vector<int8_t> &input) {
     unsigned char UncompressedBytes[10 * (input.size())]; // hopefully enough
     uLong UncompressedBufferSize = sizeof(UncompressedBytes);
 
-    int Error = uncompress(UncompressedBytes, &UncompressedBufferSize, (const Bytef*)(&input.at(0)), input.size());
+    int Error = uncompress(UncompressedBytes, &UncompressedBufferSize, (const Bytef*)(input.data()), input.size());
 
     if(Error != Z_OK) throw std::runtime_error("Zlib uncompress failed! Error: " + std::to_string(Error));
 

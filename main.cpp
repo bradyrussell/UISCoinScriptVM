@@ -6,18 +6,23 @@
 #include "BytesUtil.h"
 #include "crypto/sha512.h"
 #include "zlib/zlib_wrapper.h"
+#include "io/io.h"
 #include <zlib.h>
-
+#include <fstream>
 
 
 int main() {
+    auto scriptFromFile = io::readAllBytes("..\\test.uiscb");
+
+    BytesUtil::PrintBytes(scriptFromFile);
+
     auto beginTime = std::chrono::steady_clock::now();
     try {
-        int8_t Script[] = {1, 1, 97, 1, 1, 98, 1, 1, 99, 1, 1, 21, -103};
-        std::vector<int8_t > scriptVector;
-        scriptVector.insert(scriptVector.begin(), std::begin(Script), std::end(Script));
+        //int8_t Script[] = {1, 1, 97, 1, 1, 98, 1, 1, 99, 1, 1, 21, -103};
+        //std::vector<int8_t > scriptVector;
+        //scriptVector.insert(scriptVector.begin(), std::begin(Script), std::end(Script));
 
-        ScriptExecution scriptExecution(scriptVector);
+        ScriptExecution scriptExecution(scriptFromFile);
 
         bool success = scriptExecution.Execute();
 
