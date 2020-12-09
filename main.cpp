@@ -12,7 +12,7 @@
 
 
 int main() {
-    auto scriptFromFile = io::readAllBytes("..\\test.uiscb");
+    auto scriptFromFile = io::readAllBytes("..\\compiled.uiscb");
 
     BytesUtil::PrintBytes(scriptFromFile);
 
