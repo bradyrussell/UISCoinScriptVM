@@ -11,17 +11,19 @@
 
 
 void BytesUtil::PrintBytesHex(std::vector<int8_t> Bytes) {
+    printf("[");
     for(int8_t i:Bytes){
         printf("%x ", i & 0xff);
     }
-    printf("\n");
+    printf("]\n");
 }
 
 void BytesUtil::PrintBytes(std::vector<int8_t> Bytes) {
+    printf("[");
     for(int8_t i:Bytes){
         printf("%d ", i);
     }
-    printf("\n");
+    printf("]\n");
 }
 
 std::vector<int8_t> BytesUtil::NumberToBytes(int8_t Number) {

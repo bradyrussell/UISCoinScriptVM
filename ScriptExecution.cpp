@@ -5,6 +5,7 @@
 #include "ScriptExecution.h"
 #include "BytesUtil.h"
 #include "crypto/sha512.h"
+#include "zlib/zlib_wrapper.h"
 #include <iostream>
 #include <utility>
 #include <algorithm>
@@ -23,7 +24,7 @@ bool ScriptExecution::Step() {
 
     int8_t CurrentOp = ScriptBytes.at(InstructionCounter++);
 #ifdef DEBUGPRINT
-    std::cout << "Current Op: " << OperatorToName[(uint8_t)CurrentOp] << std::endl;
+    std::cout << "Current Op: " << OperatorToName[(uint8_t)CurrentOp] << " at Instruction " << std::to_string(InstructionCounter) << std::endl;
 #endif
     switch (CurrentOp){
         case (int8_t)OP_NOP: {
@@ -367,13 +368,13 @@ bool ScriptExecution::Step() {
             int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
 
             if(MaxLen == 1){
-                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A - B)));
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(B - A)));
                 return true;
             } else if(MaxLen == 4){
-                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(A - B)));
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(B - A)));
                 return true;
             } else if(MaxLen == 8){
-                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(A - B)));
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(B - A)));
                 return true;
             }
 
@@ -418,16 +419,16 @@ bool ScriptExecution::Step() {
 
             int32_t MaxLen = std::max(ABytes.size(),BBytes.size());
 
-            if(B == 0) throw std::invalid_argument("Divide by zero not allowed.");
+            if(A == 0) throw std::invalid_argument("Divide by zero not allowed.");
 
             if(MaxLen == 1){
-                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(A / B)));
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int8_t)(B / A)));
                 return true;
             } else if(MaxLen == 4){
-                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(A / B)));
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int32_t)(B / A)));
                 return true;
             } else if(MaxLen == 8){
-                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(A / B)));
+                ScriptStack.push_back(BytesUtil::NumberToBytes((int64_t)(B / A)));
                 return true;
             }
 
@@ -862,10 +863,20 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_ZIP: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(zlib::zip(ABytes));
+            return true;
         }
         case (int8_t)OP_UNZIP: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(zlib::unzip(ABytes));
+            return true;
         }
         case (int8_t)OP_ENCRYPTAES: {
             break;
@@ -880,7 +891,32 @@ bool ScriptExecution::Step() {
             break;
         }
         case (int8_t)OP_CALL: {
-            break;
+            //pop script
+            //pop #
+            //pop that # of elems
+
+            CheckInsufficientStackSize(2);
+            auto VirtualScriptBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto StackElementNumberBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto StackElementNumber = BytesUtil::BytesAsInt64(StackElementNumberBytes);
+
+            CheckInsufficientStackSize(StackElementNumber);
+
+            ScriptExecution callExecution = ScriptExecution(VirtualScriptBytes, std::vector<std::vector<int8_t>>(ScriptStack.end()-StackElementNumber, ScriptStack.end()), StepCounter);
+            ScriptStack.resize(ScriptStack.size() - StackElementNumber); // pop N elements
+
+            bool callResult = callExecution.Execute();
+
+            StepCounter = callExecution.StepCounter+1; // count steps inside call
+
+            ScriptStack.insert(std::end(ScriptStack), std::begin(callExecution.ScriptStack), std::end(callExecution.ScriptStack)); // copy resulting stack onto parent stack
+
+            ScriptStack.push_back(BytesUtil::BooleanToBytes(callResult));
+            return true;
         }
         case (int8_t)OP_JUMP: {
             break;
@@ -925,20 +961,41 @@ void ScriptExecution::CheckScriptEndsBefore(int32_t MinimumRemainingBytes) {
 }
 
 void ScriptExecution::CheckInsufficientStackSize(int32_t MinimumSize) {
-    if(ScriptStack.size() < MinimumSize) throw std::runtime_error("Expected at least "+std::to_string(MinimumSize)+" elements on the stack but there were only "+std::to_string(ScriptStack.size())+".");
+    if(ScriptStack.size() < MinimumSize) {
+#ifdef DEBUGPRINT
+        std::cout << "Expected at least "+std::to_string(MinimumSize)+" elements on the stack but there were only "+std::to_string(ScriptStack.size())+"."  << std::endl;
+#endif
+        throw std::runtime_error("Expected at least "+std::to_string(MinimumSize)+" elements on the stack but there were only "+std::to_string(ScriptStack.size())+".");
+    }
+
 }
 
 
 void ScriptExecution::CheckNumberIsInRange(int64_t MinInclusive, int64_t MaxInclusive, int64_t Value) {
-    if(Value < MinInclusive || Value > MaxInclusive) throw std::runtime_error("Expected value to be "+std::string(Value < MinInclusive ? "greater than "+std::to_string(MinInclusive):"less than"+std::to_string(MaxInclusive))+" but it was "+std::to_string(Value));
+    if(Value < MinInclusive || Value > MaxInclusive) {
+#ifdef DEBUGPRINT
+        std::cout << "Expected value to be "+std::string(Value < MinInclusive ? "greater than "+std::to_string(MinInclusive):"less than"+std::to_string(MaxInclusive))+" but it was "+std::to_string(Value)  << std::endl;
+#endif
+        throw std::runtime_error("Expected value to be "+std::string(Value < MinInclusive ? "greater than "+std::to_string(MinInclusive):"less than"+std::to_string(MaxInclusive))+" but it was "+std::to_string(Value));
+    }
 }
 
 void ScriptExecution::CheckInsufficientNumberBytes(const std::vector<int8_t>& Value, int32_t MinimumSizeBytes) {
-    if(Value.size() < MinimumSizeBytes) throw std::runtime_error("Expected value to be at least "+std::to_string(MinimumSizeBytes)+" bytes but it was "+std::to_string(Value.size()));
+    if(Value.size() < MinimumSizeBytes) {
+#ifdef DEBUGPRINT
+        std::cout << "Expected value to be at least "+std::to_string(MinimumSizeBytes)+" bytes but it was "+std::to_string(Value.size())  << std::endl;
+#endif
+        throw std::runtime_error("Expected value to be at least "+std::to_string(MinimumSizeBytes)+" bytes but it was "+std::to_string(Value.size()));
+    }
 }
 
 void ScriptExecution::CheckIncorrectNumberBytes(const std::vector<int8_t>& Value, int32_t ExpectedSizeBytes) {
-    if(Value.size() != ExpectedSizeBytes) throw std::runtime_error("Expected value to be "+std::to_string(ExpectedSizeBytes)+" bytes but it was "+std::to_string(Value.size()));
+    if(Value.size() != ExpectedSizeBytes) {
+#ifdef DEBUGPRINT
+        std::cout << "Expected value to be "+std::to_string(ExpectedSizeBytes)+" bytes but it was "+std::to_string(Value.size())  << std::endl;
+#endif
+        throw std::runtime_error("Expected value to be "+std::to_string(ExpectedSizeBytes)+" bytes but it was "+std::to_string(Value.size()));
+    }
 }
 
 
