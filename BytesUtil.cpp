@@ -3,14 +3,13 @@
 //
 // Created by Admin on 12/7/2020.
 //
-#include <algorithm>
 #include <cstdio>
 #include <stdexcept>
 #include "BytesUtil.h"
 
 
 
-void BytesUtil::PrintBytesHex(std::vector<int8_t> Bytes) {
+void BytesUtil::PrintBytesHex(const std::vector<int8_t>& Bytes) {
     printf("[");
     for(int8_t i:Bytes){
         printf("%x ", i & 0xff);
@@ -18,7 +17,7 @@ void BytesUtil::PrintBytesHex(std::vector<int8_t> Bytes) {
     printf("]\n");
 }
 
-void BytesUtil::PrintBytes(std::vector<int8_t> Bytes) {
+void BytesUtil::PrintBytes(const std::vector<int8_t>& Bytes) {
     printf("[");
     for(int8_t i:Bytes){
         printf("%d ", i);

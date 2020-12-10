@@ -25,8 +25,8 @@ namespace BytesUtil {
     // for comparisons, will convert int8 and int32 to int64
     int64_t BytesAsInt64(const std::vector<int8_t>& Bytes);
 
-    void PrintBytes(std::vector<int8_t> Bytes);
-    void PrintBytesHex(std::vector<int8_t> Bytes);
+    void PrintBytes(const std::vector<int8_t>& Bytes);
+    void PrintBytesHex(const std::vector<int8_t>& Bytes);
 
 
 }

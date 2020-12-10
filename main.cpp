@@ -1,6 +1,5 @@
 #include <iostream>
 #include <chrono>
-#include "ScriptOperator.h"
 #include "ScriptExecution.h"
 
 
