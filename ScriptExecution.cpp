@@ -703,7 +703,7 @@ bool ScriptExecution::Step() {
             auto BBytes = ScriptStack.back();
             ScriptStack.pop_back();
 
-            ScriptStack.push_back(BytesUtil::BooleanToBytes(BytesUtil::BytesToBoolean(ABytes) ^ BytesUtil::BytesToBoolean(BBytes))); // todo is this correct boolean xor?
+            ScriptStack.push_back(BytesUtil::BooleanToBytes((BytesUtil::BytesToBoolean(ABytes) || BytesUtil::BytesToBoolean(BBytes)) && !(BytesUtil::BytesToBoolean(ABytes) && BytesUtil::BytesToBoolean(BBytes))));
             return true;
         }
         case (int8_t)OP_INVERTFLOAT: {
@@ -910,6 +910,8 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_VERIFYSIG: {
+            //this one is probably gonna require openssl
+           // https://github.com/gladosconn/ecdsa_cxx ?
             break;
         }
         case (int8_t)OP_CODESEPARATOR: {
