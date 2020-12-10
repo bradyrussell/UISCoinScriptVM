@@ -8,17 +8,17 @@
 
 #include <stdint-gcc.h>
 #include <vector>
-#include "../crypto/sha512.h"
+#include "../sha512/sha512.h"
 
 namespace aes{
     std::vector<int8_t> encrypt(const std::vector<int8_t>& data, const std::vector<int8_t>& key);
     std::vector<int8_t> decrypt(const std::vector<int8_t>& data, const std::vector<int8_t>& key);
 
 
-    inline std::vector<unsigned char> key_from_hash(const std::vector<int8_t>& key) {
-        std::vector<int8_t> vector2 = sha512(key);
-        vector2.resize(16);
-        return std::vector<unsigned char> (vector2.begin(),vector2.end());
+    inline std::vector<unsigned char> key_from_bytes(const std::vector<int8_t>& key) {
+        std::vector<int8_t> keyBytes = sha512(key);
+        keyBytes.resize(16);
+        return std::vector<unsigned char> (keyBytes.begin(), keyBytes.end());
     }
 }
 

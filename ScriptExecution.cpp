@@ -4,8 +4,9 @@
 #include "ScriptOperator.h"
 #include "ScriptExecution.h"
 #include "BytesUtil.h"
-#include "crypto/sha512.h"
+#include "sha512/sha512.h"
 #include "zlib/zlib_wrapper.h"
+#include "aes/aes_wrapper.h"
 #include <iostream>
 #include <utility>
 #include <algorithm>
@@ -887,10 +888,26 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_ENCRYPTAES: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(aes::encrypt(ABytes, BBytes));
+            return true;
         }
         case (int8_t)OP_DECRYPTAES: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto BBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            ScriptStack.push_back(aes::decrypt(ABytes, BBytes));
+            return true;
         }
         case (int8_t)OP_VERIFYSIG: {
             break;

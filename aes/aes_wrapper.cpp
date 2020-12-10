@@ -7,7 +7,7 @@
 #include "aes.h"
 
 std::vector<int8_t> aes::encrypt(const std::vector<int8_t>& data, const std::vector<int8_t>& key) {
-    const std::vector<unsigned char> computed_key = aes::key_from_hash(key);
+    const std::vector<unsigned char> computed_key = aes::key_from_bytes(key);
 
     const unsigned long encrypted_size = aes::get_padded_encrypted_size(data.size());
     std::vector<unsigned char> encrypted(encrypted_size);
@@ -18,7 +18,7 @@ std::vector<int8_t> aes::encrypt(const std::vector<int8_t>& data, const std::vec
 }
 
 std::vector<int8_t> aes::decrypt(const std::vector<int8_t>& data, const std::vector<int8_t>& key) {
-    const std::vector<unsigned char> computed_key = aes::key_from_hash(key);
+    const std::vector<unsigned char> computed_key = aes::key_from_bytes(key);
 
     unsigned long padded_size = 0;
     std::vector<unsigned char> decrypted(data.size());

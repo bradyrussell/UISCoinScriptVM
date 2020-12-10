@@ -1,37 +1,22 @@
 #include <iostream>
-#include <sstream>
 #include <chrono>
 #include "ScriptOperator.h"
 #include "ScriptExecution.h"
-#include "BytesUtil.h"
-#include "crypto/sha512.h"
-#include "zlib/zlib_wrapper.h"
-#include "io/io.h"
-#include "aes/aes_wrapper.h"
-#include <zlib.h>
-#include <fstream>
 
 
 int main() {
 
-    const std::vector<int8_t> &bytes = aes::encrypt(BytesUtil::NumberToBytes(2), BytesUtil::NumberToBytes(2));
-    BytesUtil::PrintBytes(bytes);
-    BytesUtil::PrintBytes(aes::decrypt(bytes, BytesUtil::NumberToBytes(2)));
+    //auto scriptFromFile = io::readAllBytes("..\\compiled.uiscb");
 
-    return 0;
-
-
-    auto scriptFromFile = io::readAllBytes("..\\compiled.uiscb");
-
-    BytesUtil::PrintBytes(scriptFromFile);
+   // BytesUtil::PrintBytes(scriptFromFile);
 
     auto beginTime = std::chrono::steady_clock::now();
     try {
-        //int8_t Script[] = {1, 1, 97, 1, 1, 98, 1, 1, 99, 1, 1, 21, -103};
-        //std::vector<int8_t > scriptVector;
-        //scriptVector.insert(scriptVector.begin(), std::begin(Script), std::end(Script));
+        int8_t Script[] = {1, 4, 0, 0, 0, 1, 1, 4, 0, 0, 0, 2, -75, 1, 4, 0, 0, 0, 1, -109, -74};
+        std::vector<int8_t > scriptVector;
+        scriptVector.insert(scriptVector.begin(), std::begin(Script), std::end(Script));
 
-        ScriptExecution scriptExecution(scriptFromFile);
+        ScriptExecution scriptExecution(scriptVector);
 
         bool success = scriptExecution.Execute();
 
