@@ -7,11 +7,20 @@
 #include "crypto/sha512.h"
 #include "zlib/zlib_wrapper.h"
 #include "io/io.h"
+#include "aes/aes_wrapper.h"
 #include <zlib.h>
 #include <fstream>
 
 
 int main() {
+
+    const std::vector<int8_t> &bytes = aes::encrypt(BytesUtil::NumberToBytes(2), BytesUtil::NumberToBytes(2));
+    BytesUtil::PrintBytes(bytes);
+    BytesUtil::PrintBytes(aes::decrypt(bytes, BytesUtil::NumberToBytes(2)));
+
+    return 0;
+
+
     auto scriptFromFile = io::readAllBytes("..\\compiled.uiscb");
 
     BytesUtil::PrintBytes(scriptFromFile);
