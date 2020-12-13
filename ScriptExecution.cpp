@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <vector>
 
-#define DEBUGPRINT
+//#define DEBUGPRINT
 
 bool ScriptExecution::Step() {
     if(StepCounter++ > StepLimit) {
