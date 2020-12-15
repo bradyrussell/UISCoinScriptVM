@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <vector>
 
-//#define DEBUGPRINT
+#define DEBUGPRINT
 
 bool ScriptExecution::Step() {
     if(StepCounter++ > StepLimit) {
@@ -946,7 +946,17 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_JUMP: {
-            break;
+            CheckInsufficientStackSize(1);
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+
+            CheckNumberIsInRange(1,ScriptBytes.size(), A); // upper bounds check is handled next
+            CheckScriptEndsBefore(A);
+
+            InstructionCounter += A-1;
+            return true;
         }
         case (int8_t)OP_JUMPIF: {
             break;
