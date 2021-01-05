@@ -851,9 +851,12 @@ bool ScriptExecution::Step() {
             auto ABytes = ScriptStack.back();
             ScriptStack.pop_back();
 
-            return BytesUtil::BytesToBoolean(ABytes); // strict check for 1
+            bool b = BytesUtil::BytesToBoolean(ABytes);
+            if(!b) bScriptFailed = true;
+            return b; // strict check for 1
         }
         case (int8_t)OP_RETURN: {
+            bScriptFailed = true;
             return false;
         }
         case (int8_t)OP_RETURNIF: {
@@ -861,7 +864,9 @@ bool ScriptExecution::Step() {
             auto ABytes = ScriptStack.back();
             ScriptStack.pop_back();
 
-            return !BytesUtil::BytesToBoolean(ABytes); // strict check for 1
+            bool b = !BytesUtil::BytesToBoolean(ABytes);
+            if(!b) bScriptFailed = true;
+            return b; // strict check for 1
         }
         case (int8_t)OP_SHA512: {
             CheckInsufficientStackSize(1);
@@ -959,7 +964,25 @@ bool ScriptExecution::Step() {
             return true;
         }
         case (int8_t)OP_JUMPIF: {
-            break;
+            CheckInsufficientStackSize(2);
+            auto CondBytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            bool b = BytesUtil::BytesToBoolean(CondBytes);
+
+            if(!b)
+                return true;
+
+            auto ABytes = ScriptStack.back();
+            ScriptStack.pop_back();
+
+            auto A = BytesUtil::BytesAsInt64(ABytes);
+
+            CheckNumberIsInRange(1,ScriptBytes.size(), A); // upper bounds check is handled next
+            CheckScriptEndsBefore(A);
+
+            InstructionCounter += A-1;
+            return true;
         }
         default:{
             break;
